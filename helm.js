@@ -8,7 +8,7 @@ export default class Helm {
 
   async fetch(repoUrl, chartName, chartVersion) {
     await this.run(`repo add ${chartName}-repo ${repoUrl}`);
-    await this.run(`pull ${chartName}-repo/${chartName} --version ${chartVersion}`);
+    await this.run(`pull ${chartName}-repo/${chartName} --version ${chartVersion} --untar`);
   }
 
   async run(command) {
