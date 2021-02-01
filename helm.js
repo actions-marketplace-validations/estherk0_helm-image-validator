@@ -1,10 +1,11 @@
 const spawn = require('child_process').spawn;
 const fs = require('fs');
+const core = require('@actions/core');
 
 module.exports = class Helm {
-  constructor(binaryPath = "./bin/helm", outputFormat = "json", tempDir = "temp") {
+  constructor(outputFormat = "json", tempDir = "temp") {
     this.outputFormat = outputFormat;
-    this.binaryPath = binaryPath;
+    this.binaryPath = core.getInput('helm_binary_path');
     this.tempDir = tempDir;
     !fs.existsSync(tempDir) && fs.mkdirSync(tempDir);
   }

@@ -1,6 +1,5 @@
 const ImageValidator = require('./image_validator');
 const core = require('@actions/core');
-const fs = require('fs');
 
 async function main() {
   try {
