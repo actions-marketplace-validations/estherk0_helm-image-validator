@@ -1,9 +1,9 @@
-import fs from 'fs';
-import Helm from './helm.js';
-import YAML from 'yaml';
+const fs = require('fs');
+const Helm = require('./helm');
+const YAML = require('yaml');
 let helm = new Helm();
 
-export default class ImageValidator {
+module.exports = class ImageValidator {
   constructor() {
     this.imageList = {};
   }

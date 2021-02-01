@@ -1,7 +1,7 @@
-import {spawn} from 'child_process';
-import fs from 'fs';
+const spawn = require('child_process').spawn;
+const fs = require('fs');
 
-export default class Helm {
+module.exports = class Helm {
   constructor(binaryPath = "./bin/helm", outputFormat = "json", tempDir = "temp") {
     this.outputFormat = outputFormat;
     this.binaryPath = binaryPath;

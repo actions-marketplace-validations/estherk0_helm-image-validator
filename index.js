@@ -1,4 +1,4 @@
-import ImageValidator from './image_validator.js';
+const ImageValidator = require('./image_validator');
 
 async function main() {
   try {

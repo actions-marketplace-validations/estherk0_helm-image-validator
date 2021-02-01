@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "type": "module",
   "dependencies": {
     "fs": "^0.0.1-security",
     "request": "^2.88.2",
