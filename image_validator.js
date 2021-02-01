@@ -59,6 +59,7 @@ module.exports = class ImageValidator {
         throw new Error(err);
       }
     }
+    console.log(`***************** 1) \n ${this.imageList}`);
   }
 
 
@@ -74,6 +75,8 @@ module.exports = class ImageValidator {
     for (let chart of valueDoc.charts) {
       targetList[chart.name] = chart.override;
     }
+    console.log(`***************** 2) \n ${targetList}`);
+
     for(let chartName in this.imageList) {
       const src = this.imageList[chartName];
       const target = targetList[chartName];
