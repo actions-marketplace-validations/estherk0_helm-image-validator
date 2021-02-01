@@ -1,13 +1,17 @@
 const ImageValidator = require('./image_validator');
+const core = require('@actions/core');
 
 async function main() {
   try {
     let imageValidator = new ImageValidator();
-    await imageValidator.getImagesFromChart(`/Users/1112456/github/decapod-base-yaml/lma/base/resources.yaml`);
-    imageValidator.validate(`/Users/1112456/github/decapod-base-yaml/lma/image/image-values.yaml`);
+    const appList = core.getInput('app_list').split(',');
+    for (let app of appList) {
+      await imageValidator.getImagesFromChart(`${app}/base/resources.yaml`);
+      imageValidator.validate(`${app}/image/image-values.yaml`);
+    }
   } catch (err) {
-    console.error(err.message);
-    throw err;
+    core.error(err.message);
+    core.setFailed("Error Occurred");
   }
 }
 

@@ -1,0 +1,12 @@
+name: 'HelmChart Image Validator'
+description: 'Validate image value in helm chart to override correctly or not. Work with decapod-base-yaml.'
+branding:
+  icon: 'terminal'
+  color: 'green'
+inputs:
+  app_list:
+    description: 'application list(comma seperated) to validate image.'
+    required: true
+runs:
+  using: 'node12'
+  main: 'index.js'

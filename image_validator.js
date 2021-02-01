@@ -32,6 +32,9 @@ module.exports = class ImageValidator {
   }
 
   async getImagesFromChart(baseFilePath) {
+    if (!fs.existsSync(baseFilePath)) {
+      throw new Error(`${baseFilePath} doesn't exist.`);
+    }
     const file = fs.readFileSync(baseFilePath, 'utf8');
     const docs = YAML.parseAllDocuments(file);
     for(const doc of docs) {
@@ -60,6 +63,9 @@ module.exports = class ImageValidator {
 
 
   validate(targetFilePath) {
+    if (!fs.existsSync(targetFilePath)) {
+      throw new Error(`${targetFilePath} doesn't exist.`);
+    }
     const file = fs.readFileSync(targetFilePath, 'utf8');
     const valueDoc = YAML.parse(file);
     let errmsg = '';
