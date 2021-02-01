@@ -7,6 +7,10 @@ inputs:
   app_list:
     description: 'application list(comma seperated) to validate image.'
     required: true
+  helm_binary_path:
+    description: 'helm binary path'
+    default: './bin/helm'
+    required: true
 runs:
   using: 'node12'
   main: 'index.js'
