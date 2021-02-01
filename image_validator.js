@@ -74,11 +74,13 @@ module.exports = class ImageValidator {
     for (let chart of valueDoc.charts) {
       targetList[chart.name] = chart.override;
     }
+
     for(let chartName in this.imageList) {
       const src = this.imageList[chartName];
       const target = targetList[chartName];
       if (!target) {
         errmsg += `[ERROR] Missing chart ${chartName} in image-values.yaml\n`;
+        continue;
       }
       for (let imagePath in src) {
         if (!target[imagePath]) {
