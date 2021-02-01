@@ -1,14 +1,17 @@
 import {spawn} from 'child_process';
+import fs from 'fs';
 
 export default class Helm {
-  constructor(binaryPath = "./bin/helm", outputFormat = "json") {
+  constructor(binaryPath = "./bin/helm", outputFormat = "json", tempDir = "temp") {
     this.outputFormat = outputFormat;
     this.binaryPath = binaryPath;
+    this.tempDir = tempDir;
+    !fs.existsSync(tempDir) && fs.mkdirSync(tempDir);
   }
 
   async fetch(repoUrl, chartName, chartVersion) {
     await this.run(`repo add ${chartName}-repo ${repoUrl}`);
-    await this.run(`pull ${chartName}-repo/${chartName} --version ${chartVersion} --untar`);
+    await this.run(`pull ${chartName}-repo/${chartName} --version ${chartVersion} --untar --untardir ${this.tempDir}`);
   }
 
   async run(command) {
