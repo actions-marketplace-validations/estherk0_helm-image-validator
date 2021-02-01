@@ -1,7 +1,15 @@
 const ImageValidator = require('./image_validator');
 const core = require('@actions/core');
+const fs = require('fs');
 
 async function main() {
+  console.log(`debug****** ${process.cwd()}`);
+
+  
+  fs.readdirSync('./').forEach(file => {
+    console.log(file);
+  });
+
   try {
     let imageValidator = new ImageValidator();
     const appList = core.getInput('app_list').split(',');
