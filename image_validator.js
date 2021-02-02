@@ -1,6 +1,7 @@
 const fs = require('fs');
 const Helm = require('./helm');
 const YAML = require('yaml');
+const core = require('@actions/core');
 let helm = new Helm();
 
 module.exports = class ImageValidator {
@@ -8,27 +9,31 @@ module.exports = class ImageValidator {
     this.imageList = {};
   }
 
-  searchImageKV(values, prevKey, resMap) {
+  searchImageKV(values, prevKey, res) {
     if (!values || typeof values != 'object') {
-      return resMap;
+      return res;
     }
     for(let key of Object.keys(values)) {
-      if (values[key] && values[key].repository && values[key].tag) { // most common pattern of image value
-        let repoPath = prevKey ? `${prevKey}.${key}.repository` : `${key}.repository`;
-        let tagPath = prevKey ? `${prevKey}.${key}.tag` : `${key}.tag`;
-        resMap[repoPath] = values[key].repository;
-        resMap[tagPath] = values[key].tag;
+      if (values[key] && (values[key].repository || values[key].tag)) { // most common pattern of image value
+        if (values[key].repository) {
+          let repoPath = prevKey ? `${prevKey}.${key}.repository` : `${key}.repository`;
+          res[repoPath] = values[key].repository;
+        }
+        if (values[key].tag) {
+          let tagPath = prevKey ? `${prevKey}.${key}.tag` : `${key}.tag`;
+          res[tagPath] = values[key].tag;
+        }
       } else if (key == 'images' && values[key].tags) { // pattern for openstack chart
         for (let subkey in values[key].tags) {
           let currKey = prevKey ? `${prevKey}.${key}.tags.${subkey}` : `${key}.tags.${subkey}`; 
-          resMap[currKey] = values[key].tags[subkey];
+          res[currKey] = values[key].tags[subkey];
         }
       } else {
         let currKey = prevKey ? `${prevKey}.${key}` : key; 
-        resMap = this.searchImageKV(values[key], currKey, resMap);
+        res = this.searchImageKV(values[key], currKey, res);
       }
     }
-    return resMap;
+    return res;
   }
 
   async getImagesFromChart(baseFilePath) {
@@ -43,17 +48,18 @@ module.exports = class ImageValidator {
         version: doc.getIn(['spec', 'chart', 'version']),
         repoUrl: doc.getIn(['spec', 'chart', 'repository'])
       };
-      let metadataName = doc.getIn(['metadata', 'name']);
 
       try {
+        core.info(`>>> Trying to fetch the helm chart "${chart.name}:${chart.version}"...`);
         // download helm chart
         await helm.fetch(chart.repoUrl, chart.name, chart.version);
-        const valueFile = fs.readFileSync(`temp/${chart.name}/values.yaml`, 'utf8');
-        const valueDoc = YAML.parse(valueFile);
-        const res = this.searchImageKV(valueDoc, '', {});
-        this.imageList[metadataName] = res;
-        // TODO: apply helmrelease's value override.
-        // let valueOverride = doc.getIn(['spec', 'values']).toString();
+        const upstreamFile = fs.readFileSync(`temp/${chart.name}/values.yaml`, 'utf8');
+        const upstreamDoc = YAML.parse(upstreamFile);
+        core.info(`>>> Searching imave values from "${chart.name}:${chart.version}"...`);
+        let res = this.searchImageKV(upstreamDoc, '', {});
+        // override helmrelease's value override.
+        let helmreleaseValue = JSON.parse(doc.getIn(['spec', 'values']).toString());
+        this.imageList[doc.getIn(['metadata', 'name'])] = this.searchImageKV(helmreleaseValue, '', res);
       } catch (err) {
         console.log(err);
         throw new Error(err);
@@ -63,6 +69,7 @@ module.exports = class ImageValidator {
 
 
   validate(targetFilePath) {
+    core.info(`>>> Compare the image values in image-values.yaml with origin image values...`);
     if (!fs.existsSync(targetFilePath)) {
       throw new Error(`${targetFilePath} doesn't exist.`);
     }
@@ -91,7 +98,7 @@ module.exports = class ImageValidator {
           temp = temp.replace(/library\//, ''); // remove "library/" for a specific use-case "docker.io/library".
           if (!src[imagePath].includes(temp)) {
             errmsg += `[ERROR] Not valid value.\n\tChart Name: ${chartName}\n\t ${imagePath}: ${target[imagePath]}
-            => ${imagePath}: ${src[imagePath]}`;
+            => ${imagePath}: ${src[imagePath]}\n`;
           }
         } 
         else if (target[imagePath] != src[imagePath]) { // tags
