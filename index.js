@@ -9,10 +9,12 @@ async function main() {
       await imageValidator.getImagesFromChart(`${app}/base/resources.yaml`);
       imageValidator.validate(`${app}/image/image-values.yaml`);
     }
+    core.info("====================================  Result ====================================");
+    core.info("Validation successfully completed!");
   } catch (err) {
-    core.error("==================  Result ==================");
+    core.error("====================================  Result ====================================");
     core.error(err.message);
-    core.setFailed("Validation Failed! \nPlease refer to the above errors.");
+    core.setFailed("Validation failed! \nPlease see the logs for the details.");
   }
 }
 
