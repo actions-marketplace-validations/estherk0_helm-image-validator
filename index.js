@@ -10,8 +10,9 @@ async function main() {
       imageValidator.validate(`${app}/image/image-values.yaml`);
     }
   } catch (err) {
+    core.error("==================  Result ==================");
     core.error(err.message);
-    core.setFailed("Error Occurred");
+    core.setFailed("Validation Failed! \nPlease refer to the above errors.");
   }
 }
 
