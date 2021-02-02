@@ -21,7 +21,7 @@ module.exports = class ImageValidator {
         }
         if (values[key].tag) {
           let tagPath = prevKey ? `${prevKey}.${key}.tag` : `${key}.tag`;
-          if (tagPath.toLowerCase().includes('image')) { // 'tag' can be used in different way. i.e. fluentbits.logs.tag
+          if (!tagPath.toLowerCase().includes('targetLogs')) { // 'tag' can be used in different way. i.e. fluentbits.logs.tag
             res[tagPath] = values[key].tag;
           }
         }
