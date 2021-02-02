@@ -21,7 +21,9 @@ module.exports = class ImageValidator {
         }
         if (values[key].tag) {
           let tagPath = prevKey ? `${prevKey}.${key}.tag` : `${key}.tag`;
-          res[tagPath] = values[key].tag;
+          if (tagPath.toLowerCase().includes('image')) { // 'tag' can be used in different way. i.e. fluentbits.logs.tag
+            res[tagPath] = values[key].tag;
+          }
         }
       } else if (key == 'images' && values[key].tags) { // pattern for openstack chart
         for (let subkey in values[key].tags) {
@@ -75,7 +77,7 @@ module.exports = class ImageValidator {
     }
     const file = fs.readFileSync(targetFilePath, 'utf8');
     const valueDoc = YAML.parse(file);
-    let errmsg = '';
+    let errmsg = '', errCount = 1;
     let targetList = {};
     // convert image values into same scheme with `this.imageList`.
     for (let chart of valueDoc.charts) {
@@ -86,27 +88,35 @@ module.exports = class ImageValidator {
       const src = this.imageList[chartName];
       const target = targetList[chartName];
       if (!target) {
-        errmsg += `[ERROR] Missing chart ${chartName} in image-values.yaml\n`;
+        errmsg += `[ERROR] #${errCount++}. Missing chart ${chartName} in image-values.yaml\n`;
         continue;
       }
       for (let imagePath in src) {
         if (!target[imagePath]) {
-          errmsg += `[ERROR] Missing value.\n\t Chart Name: ${chartName}
+          errmsg += `[ERROR] #${errCount++}. Missing value.\n\t Chart Name: ${chartName}
           ${imagePath}: ${this.imageList[chartName][imagePath]}\n`;
         } else if (typeof target[imagePath] == 'string' && target[imagePath].indexOf('/') > 0) { // registry url
           let temp = target[imagePath].substr(target[imagePath].indexOf('/')+1);
           temp = temp.replace(/library\//, ''); // remove "library/" for a specific use-case "docker.io/library".
           if (!src[imagePath].includes(temp)) {
-            errmsg += `[ERROR] Not valid value.\n\tChart Name: ${chartName}\n\t ${imagePath}: ${target[imagePath]}
+            errmsg += `[ERROR] #${errCount++}. Not valid value.\n\tChart Name: ${chartName}\n\t ${imagePath}: ${target[imagePath]}
             => ${imagePath}: ${src[imagePath]}\n`;
           }
         } 
         else if (target[imagePath] != src[imagePath]) { // tags
-          errmsg += `[ERROR] Not valid value.\n\tChart Name: ${chartName}\n\t ${imagePath}: ${target[imagePath]}
+          errmsg += `[ERROR] #${errCount++}. Not valid value.\n\tChart Name: ${chartName}\n\t ${imagePath}: ${target[imagePath]}
           => ${imagePath}: ${src[imagePath]}\n`;
         }
       }
     }
-    if (errmsg) throw new Error(errmsg);
+    core.info("====================================  Result ====================================");
+    if (errmsg) {
+      core.error(`Total errors: ${errCount-1}`);
+      core.error(errmsg);
+      throw new Error(errmsg);
+    } else {
+      core.error(`Total errors: ${errCount-1}`);
+      core.info("Validation successfully completed!");
+    }
   }
 }
