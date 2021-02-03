@@ -96,19 +96,18 @@ module.exports = class ImageValidator {
       }
       for (let imagePath in src) {
         if (!target[imagePath]) {
-          errDetails[chartName] += `#${errCount++}. Missing value:\n\t 
-          ${imagePath}: ${this.imageList[chartName][imagePath]}\n`;
+          errDetails[chartName].push(`#${errCount++}. Missing value:\n\t 
+          ${imagePath}: ${this.imageList[chartName][imagePath]}\n`);
         } else if (typeof target[imagePath] == 'string' && target[imagePath].indexOf('/') > 0) { // registry url
-          let temp = target[imagePath].substr(target[imagePath].indexOf('/')+1);
-          temp = temp.replace(/library\//, ''); // remove "library/" for a specific use-case "docker.io/library".
-          if (!src[imagePath].includes(temp)) {
-            errDetails[chartName] += `#${errCount++}. Invalid value:\n\t
-            => ${imagePath}: ${src[imagePath]}\n`;
+          let filtered = target[imagePath].substr(target[imagePath].indexOf('/')+1).replace(/library\//, '');
+          if (!src[imagePath].includes(filtered)) {
+            errDetails[chartName].push(`#${errCount++}. Invalid value:\n\t
+            => ${imagePath}: ${src[imagePath]}\n`);
           }
         } 
         else if (target[imagePath] != src[imagePath]) { // tags
-          errDetails[chartName] += `#${errCount++}. Invalid value:\n\t ${imagePath}: ${target[imagePath]}
-          => ${imagePath}: ${src[imagePath]}\n`;
+          errDetails[chartName].push(`#${errCount++}. Invalid value:\n\t ${imagePath}: ${target[imagePath]}
+          => ${imagePath}: ${src[imagePath]}\n`);
         }
       }
     }
