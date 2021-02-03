@@ -5,7 +5,8 @@ const core = require('@actions/core');
 let helm = new Helm();
 
 module.exports = class ImageValidator {
-  constructor() {
+  constructor(appName) {
+    this.appName = appName;
     this.imageList = {};
   }
 
@@ -115,7 +116,7 @@ module.exports = class ImageValidator {
   }
 
   printValidateResult(errCount, errDetails) {
-    core.info("====================================  Result ====================================");
+    core.info(`==================================== "${this.app}" validation result ====================================`);
     if (errCount) {
       core.error(`Total errors: ${errCount}`);
       for (let chartName in errDetails) {
@@ -123,7 +124,7 @@ module.exports = class ImageValidator {
           continue;
         }
         core.error(`>>>>>> Chart name: ${chartName}`);
-        core.error(`${errDetails[chartName]}`);
+        core.error(`\n${errDetails[chartName]}`);
       }
       throw new Error(errCount);
     } else {
