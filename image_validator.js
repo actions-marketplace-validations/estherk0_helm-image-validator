@@ -21,7 +21,7 @@ module.exports = class ImageValidator {
         }
         if (values[key].tag) {
           let tagPath = prevKey ? `${prevKey}.${key}.tag` : `${key}.tag`;
-          if (!tagPath.toLowerCase().includes('targetLogs')) { // 'tag' can be used in different way. i.e. fluentbits.logs.tag
+          if (!tagPath.includes('targetLogs')) { // 'tag' can be used in different way. i.e. fluentbits.logs.tag
             res[tagPath] = values[key].tag;
           }
         }
@@ -52,12 +52,12 @@ module.exports = class ImageValidator {
       };
 
       try {
-        core.info(`>>> Trying to fetch the helm chart "${chart.name}:${chart.version}"...`);
+        core.debug(`>>> Trying to fetch the helm chart "${chart.name}:${chart.version}"...`);
         // download helm chart
         await helm.fetch(chart.repoUrl, chart.name, chart.version);
         const upstreamFile = fs.readFileSync(`temp/${chart.name}/values.yaml`, 'utf8');
         const upstreamDoc = YAML.parse(upstreamFile);
-        core.info(`>>> Searching imave values from "${chart.name}:${chart.version}"...`);
+        core.debug(`>>> Searching imave values from "${chart.name}:${chart.version}"...`);
         let res = this.searchImageKV(upstreamDoc, '', {});
         // override helmrelease's value override.
         let helmreleaseValue = JSON.parse(doc.getIn(['spec', 'values']).toString());
@@ -70,7 +70,7 @@ module.exports = class ImageValidator {
   }
 
   validate(targetFilePath) {
-    core.info(`>>> Compare the image values in image-values.yaml with origin image values...`);
+    core.debug(`>>> Compare the image values in image-values.yaml with origin image values...`);
     if (!fs.existsSync(targetFilePath)) {
       throw new Error(`${targetFilePath} doesn't exist.`);
     }
@@ -117,7 +117,7 @@ module.exports = class ImageValidator {
   printValidateResult(errCount, errDetails) {
     core.info("====================================  Result ====================================");
     if (errCount) {
-      core.error(`Total errors: ${errCount-1}`);
+      core.error(`Total errors: ${errCount}`);
       for (let chartName in errDetails) {
         if (!errDetails[chartName].length) {
           continue;
@@ -125,10 +125,9 @@ module.exports = class ImageValidator {
         core.error(`>>>>>> Chart name: ${chartName}`);
         core.error(`${errDetails[chartName]}`);
       }
-      core.error(errmsg);
       throw new Error(errCount);
     } else {
-      core.info(`Total errors: ${errCount-1}`);
+      core.info(`Total errors: ${errCount}`);
       core.info("Validation successfully completed!");
     }
   }
