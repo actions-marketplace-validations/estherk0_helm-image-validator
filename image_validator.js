@@ -116,7 +116,7 @@ module.exports = class ImageValidator {
   }
 
   printValidateResult(errCount, errDetails) {
-    core.info(`==================================== "${this.app}" validation result ====================================`);
+    core.info(`==================================== "${this.appName}" validation result ====================================`);
     if (errCount) {
       core.error(`Total errors: ${errCount}`);
       for (let chartName in errDetails) {
